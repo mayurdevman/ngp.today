@@ -1,25 +1,25 @@
 
-name: NGP Today — ingest and deploy
+name: NGP Today — deploy website
 
 on:
-  workflow_dispatch:
   push:
     branches: [main]
-  schedule:
-    - cron: '17 */4 * * *'
+    paths:
+      - 'website/**'
+      - '.github/workflows/ingest.yml'
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
 concurrency:
-  group: ngp-today-pages
+  group: github-pages
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
-    if: github.event_name != 'push' || github.actor != 'github-actions[bot]'
+  deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -29,69 +29,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install ingestion package
-        run: pip install . pytest
-
-      - name: Run tests
-        run: python -m pytest
-
-      - name: Validate sample import
-        run: nagpur-today import-csv data/sample_events.csv --output /tmp/normalized_events.json
-
-      - name: Discover event leads from approved RSS feeds
-        env:
-          NGP_RSS_FEEDS: ${{ secrets.NGP_RSS_FEEDS }}
-          NGP_RSS_FEED_NAMES: ${{ vars.NGP_RSS_FEED_NAMES }}
-        run: nagpur-today discover-rss --output data/event_candidates.json
-
-      - name: Archive RSS candidates
-        uses: actions/upload-artifact@v4
-        with:
-          name: ngp-today-event-candidates
-          path: data/event_candidates.json
-          if-no-files-found: warn
-
-      - name: Queue submitted social links
-        run: nagpur-today intake-links data/manual_social_links.csv --output data/social_link_candidates.json
-
-      - name: Archive social link candidates
-        uses: actions/upload-artifact@v4
-        with:
-          name: ngp-today-social-link-candidates
-          path: data/social_link_candidates.json
-          if-no-files-found: warn
-
-      - name: Ingest approved organizer calendars
-        env:
-          NAGPUR_ICS_FEEDS: ${{ secrets.NAGPUR_ICS_FEEDS }}
-          NAGPUR_ICS_AUTO_PUBLISH: ${{ vars.NAGPUR_ICS_AUTO_PUBLISH }}
-        run: |
-          if [ "$NAGPUR_ICS_AUTO_PUBLISH" = "true" ]; then
-            nagpur-today ingest-ical --db data/events.db --publish-approved-feeds
-          else
-            nagpur-today ingest-ical --db data/events.db
-          fi
-
-      - name: Export published website data
-        run: nagpur-today export-jekyll-json --db data/events.db --output website/_data/events.json
-
-      - name: Persist event database and dataset
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f data/events.db
-          git add website/_data/events.json
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: refresh event dataset"
-            git push
-          fi
-
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
@@ -100,8 +37,6 @@ jobs:
         with:
           source: ./website
           destination: ./_site
-          future: false
-          verbose: true
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
