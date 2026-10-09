@@ -7,7 +7,28 @@ title: What's on in Nagpur
   <h1>What's on<br>in Nagpur.</h1>
   <p class="intro">A simple guide to things happening around the city.</p>
 </section>
-<main id="events" class="wrap events-section">\n  <div class="submitbar"><p>Know something happening in Nagpur?</p><button class="submit-button" id="toggleSubmit" type="button" aria-expanded="false">+ Submit an event</button></div>\n  <form class="submit-form" id="submitForm"><h2>Submit an event</h2><p class="form-note">Share an event for review. Submissions are not published automatically.</p><div class="form-grid"><label>Event name *<input name="title" required maxlength="140" placeholder="e.g. Live music night"></label><label>Category<select name="category"><option>Music</option><option>Comedy</option><option>Art & culture</option><option>Food & drink</option><option>Community</option><option>Sports</option><option>Workshop</option><option>Nightlife</option><option>Other</option></select></label><label>Date *<input name="date" type="date" required></label><label>Time<input name="time" type="time"></label><label>Venue *<input name="venue" required maxlength="140" placeholder="Venue and neighbourhood"></label><label>Ticket or event link *<input name="url" type="url" required placeholder="https://..."></label><label>Cover image URL<input name="image" type="url" placeholder="Direct link to poster/image"></label><label>Price<input name="price" maxlength="60" placeholder="Free / ₹299 onwards"></label><label class="form-wide">Extra details<textarea name="details" maxlength="500" placeholder="Anything attendees should know"></textarea></label><label>Submitter email (optional)<input name="email" type="email" placeholder="For follow-up only"></label></div><div class="form-actions"><button type="submit">Prepare submission</button><span class="form-note" id="formStatus" role="status">Opens a pre-filled email; nothing is published automatically.</span></div></form>
+<main id="events" class="wrap events-section">
+  <div class="submitbar">
+    <p>Know something happening in Nagpur?</p>
+    <button class="submit-button" id="toggleSubmit" type="button" aria-expanded="false">+ Submit an event</button>
+  </div>
+  <form class="submit-form" id="submitForm">
+    <h2>Submit an event</h2>
+    <p class="form-note">Share an event for review. Submissions are not published automatically.</p>
+    <div class="form-grid">
+      <label>Event name *<input name="title" required maxlength="140" placeholder="e.g. Live music night"></label>
+      <label>Category<select name="category"><option>Music</option><option>Comedy</option><option>Art & culture</option><option>Food & drink</option><option>Community</option><option>Sports</option><option>Workshop</option><option>Nightlife</option><option>Other</option></select></label>
+      <label>Date *<input name="date" type="date" required></label>
+      <label>Time<input name="time" type="time"></label>
+      <label>Venue *<input name="venue" required maxlength="140" placeholder="Venue and neighbourhood"></label>
+      <label>Ticket or event link *<input name="url" type="url" required placeholder="https://..."></label>
+      <label>Cover image URL<input name="image" type="url" placeholder="Direct link to poster/image"></label>
+      <label>Price<input name="price" maxlength="60" placeholder="Free / ₹299 onwards"></label>
+      <label class="form-wide">Extra details<textarea name="details" maxlength="500" placeholder="Anything attendees should know"></textarea></label>
+      <label>Submitter email (optional)<input name="email" type="email" placeholder="For follow-up only"></label>
+    </div>
+    <div class="form-actions"><button type="submit">Prepare submission</button><span class="form-note" id="formStatus" role="status">Opens a pre-filled email; nothing is published automatically.</span></div>
+  </form>
   <div class="section-title"><h2>Upcoming</h2></div>
   <div class="filters">
     <label class="search"><span aria-hidden="true">⌕</span><input id="eventSearch" type="search" placeholder="Search events or places" aria-label="Search events"></label>
@@ -15,3 +36,38 @@ title: What's on in Nagpur
   </div>
   {% include event-grid.html %}
 </main>
+<script>
+(() => {
+  const form = document.getElementById('submitForm');
+  const toggle = document.getElementById('toggleSubmit');
+  if (!form || !toggle) return;
+  toggle.addEventListener('click', () => {
+    const open = form.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.textContent = open ? 'Close form' : '+ Submit an event';
+  });
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    const data = Object.fromEntries(new FormData(form).entries());
+    const subject = encodeURIComponent('NGP Today event submission: ' + data.title);
+    const body = encodeURIComponent([
+      'Please review this event for NGP Today.',
+      '',
+      'Title: ' + data.title,
+      'Category: ' + data.category,
+      'Date: ' + data.date,
+      'Time: ' + (data.time || 'Not provided'),
+      'Venue: ' + data.venue,
+      'Ticket/event URL: ' + data.url,
+      'Cover image URL: ' + (data.image || 'Not provided'),
+      'Price: ' + (data.price || 'Not provided'),
+      'Details: ' + (data.details || 'Not provided'),
+      'Submitter email: ' + (data.email || 'Not provided'),
+      '',
+      'Please verify event details and image usage before publishing.'
+    ].join('\n'));
+    document.getElementById('formStatus').textContent = 'Your email app will open with the submission ready to send.';
+    window.location.href = 'mailto:hello@ngp.today?subject=' + subject + '&body=' + body;
+  });
+})();
+</script>
