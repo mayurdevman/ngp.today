@@ -23,25 +23,35 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install -e .
+      - run: pip install -e '.[test]'
+      - name: Run ingestion tests
+        run: python -m pytest -q
       - name: Initialize database
         run: python -c 'from nagpur_today.storage import connect; connect("data/events.db").close()'
       - name: Ingest approved calendar feeds
         shell: bash
         run: |
-          if [[ -z "$NAGPUR_ICS_FEEDS" ]]; then
-            echo 'No approved calendar feeds configured; skipping.'
+          if [[ "$NAGPUR_ICS_FEEDS" != *"://"* ]]; then
+            echo 'No valid HTTPS calendar feed configured; skipping.'
           elif [[ "${NAGPUR_ICS_AUTO_PUBLISH,,}" == 'true' ]]; then
             python -m nagpur_today.cli ingest-ical --db data/events.db --publish-approved-feeds
           else
             python -m nagpur_today.cli ingest-ical --db data/events.db
           fi
       - name: Discover RSS candidates for review
-        run: python -m nagpur_today.cli discover-rss --output data/event_candidates.json
+        shell: bash
+        run: |
+          if [[ "$NGP_RSS_FEEDS" == *"https://"* ]]; then
+            python -m nagpur_today.cli discover-rss --output data/event_candidates.json
+          else
+            mkdir -p data
+            printf '{"candidates": []}\n' > data/event_candidates.json
+            echo 'No valid HTTPS RSS feed configured; created an empty review queue.'
+          fi
       - name: Export approved events to website
         run: |
           python -m nagpur_today.cli export-jekyll-json --db data/events.db --output data/published_events.json
-          python -c 'import json; from pathlib import Path; e=json.loads(Path("data/published_events.json").read_text()); p=Path("website/_data/events.json"); p.parent.mkdir(parents=True,exist_ok=True); old=p.read_text() if p.exists() else "[]"; p.write_text(json.dumps(e,indent=2,ensure_ascii=False)+chr(10) if e else old,encoding="utf-8"); print(f"Prepared {len(e)} published events")'
+          python -c 'import json; from pathlib import Path; e=json.loads(Path("data/published_events.json").read_text()); p=Path("website/_data/events.json"); p.parent.mkdir(parents=True,exist_ok=True); old=p.read_text() if p.exists() else "[]"; p.write_text(json.dumps(e,indent=2,ensure_ascii=False)+chr(10) if e else old,encoding="utf-8"); print(f"Prepared {len(e)} published events; retained existing website data if export was empty")'
       - name: Commit updated event data
         run: |
           git config user.name 'github-actions[bot]'
