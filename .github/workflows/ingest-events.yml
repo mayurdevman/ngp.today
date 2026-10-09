@@ -1,0 +1,60 @@
+name: NGP Today — scheduled ingestion
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: ngp-today-ingestion
+  cancel-in-progress: false
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    env:
+      NAGPUR_ICS_FEEDS: ${{ vars.NAGPUR_ICS_FEEDS }}
+      NAGPUR_ICS_AUTO_PUBLISH: ${{ vars.NAGPUR_ICS_AUTO_PUBLISH }}
+      NGP_RSS_FEEDS: ${{ vars.NGP_RSS_FEEDS }}
+      NGP_RSS_FEED_NAMES: ${{ vars.NGP_RSS_FEED_NAMES }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e .
+      - name: Initialize database
+        run: python -c 'from nagpur_today.storage import connect; connect("data/events.db").close()'
+      - name: Ingest approved calendar feeds
+        shell: bash
+        run: |
+          if [[ -z "$NAGPUR_ICS_FEEDS" ]]; then
+            echo 'No approved calendar feeds configured; skipping.'
+          elif [[ "${NAGPUR_ICS_AUTO_PUBLISH,,}" == 'true' ]]; then
+            python -m nagpur_today.cli ingest-ical --db data/events.db --publish-approved-feeds
+          else
+            python -m nagpur_today.cli ingest-ical --db data/events.db
+          fi
+      - name: Discover RSS candidates for review
+        run: python -m nagpur_today.cli discover-rss --output data/event_candidates.json
+      - name: Export approved events to website
+        run: |
+          python -m nagpur_today.cli export-jekyll-json --db data/events.db --output data/published_events.json
+          python -c 'import json; from pathlib import Path; e=json.loads(Path("data/published_events.json").read_text()); p=Path("website/_data/events.json"); p.parent.mkdir(parents=True,exist_ok=True); p.write_text(json.dumps(e,indent=2,ensure_ascii=False)+"\\n" if e else p.read_text() if p.exists() else "[]\\n",encoding="utf-8"); print(f"Prepared {len(e)} published events")'
+      - name: Commit updated event data
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/events.db website/_data/events.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore: refresh event data'
+            git push origin HEAD:main
+          fi
+      - name: Archive RSS review candidates
+        uses: actions/upload-artifact@v4
+        with:
+          name: ngp-today-event-candidates
+          path: data/event_candidates.json
+          if-no-files-found: warn
+          retention-days: 14
