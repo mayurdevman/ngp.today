@@ -1,0 +1,16 @@
+<div class="eventgrid" id="eventGrid" aria-live="polite">
+  {% assign visible_events = site.data.events | where_exp: "event", "event.starts_at != nil" %}
+  {% assign visible_events = visible_events | sort: "starts_at" %}
+  {% if visible_events.size > 0 %}
+    {% for event in visible_events %}
+      <article class="event" data-starts-at="{{ event.starts_at | escape }}">
+        <div class="event-date"><span>{{ event.starts_at | date: "%b" | upcase }}</span><strong>{{ event.starts_at | date: "%d" }}</strong></div>
+        <div class="eventbody"><h3>{{ event.title | escape }}</h3>
+          <div class="meta"><span>{{ event.venue_name | default: event.neighbourhood | default: "Nagpur" | escape }}</span>{% if event.source_url %}<a href="{{ event.source_url | escape }}" rel="noopener noreferrer" target="_blank">Details ↗</a>{% endif %}</div>
+        </div>
+      </article>
+    {% endfor %}
+  {% else %}
+    <div class="empty">Events will appear here once listings are connected.</div>
+  {% endif %}
+</div>

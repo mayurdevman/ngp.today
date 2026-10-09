@@ -1,0 +1,7 @@
+title: NGP Today
+description: A minimal guide to events happening around Nagpur.
+lang: en-IN
+markdown: kramdown
+permalink: pretty
+exclude:
+  - README.md

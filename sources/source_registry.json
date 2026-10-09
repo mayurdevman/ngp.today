@@ -1,0 +1,106 @@
+{
+  "project": "NGP Today",
+  "target_domain": "ngp.today",
+  "policy": "Only activate automated collection after reviewing access terms, permissions, rate limits, attribution and reuse rights. No anti-bot or login restrictions may be bypassed.",
+  "sources": [
+    {
+      "id": "livehindustan-nagpur-rss",
+      "name": "Live Hindustan — Nagpur RSS",
+      "url": "https://api.livehindustan.com/feeds/rss/maharashtra/nagpur/rssfeed.xml",
+      "kind": "news_rss",
+      "method": "rss_candidate_discovery",
+      "status": "candidate_requires_terms_review",
+      "auto_fetch_enabled": false,
+      "auto_publish_enabled": false,
+      "notes": "Potential event lead source. RSS items are article leads only; verify event date, venue, future status and original organiser source. Confirm terms before enabling."
+    },
+    {
+      "id": "nagpur-district-events",
+      "name": "District Nagpur — official government events page",
+      "url": "https://nagpur.gov.in/events/",
+      "kind": "official_website",
+      "method": "manual_review_or_permission",
+      "status": "checked_no_events_on_2026-10-09",
+      "auto_fetch_enabled": false,
+      "auto_publish_enabled": false,
+      "notes": "Page showed no events at time of review. Government website copyright policy requests permission for reproduction; request permission before reusing content."
+    },
+    {
+      "id": "happening-in-nagpur",
+      "name": "Happening in Nagpur",
+      "url": "https://happeninginnagpur.com/",
+      "kind": "local_event_publisher",
+      "method": "organiser_partnership_or_manual_review",
+      "status": "permission_not_confirmed",
+      "auto_fetch_enabled": false,
+      "auto_publish_enabled": false,
+      "notes": "Potential partnership/source for public event leads. Do not scrape automatically without permission."
+    },
+    {
+      "id": "apnashow-nagpur",
+      "name": "ApnaShow Nagpur",
+      "url": "https://apnashow.in/index.html",
+      "kind": "ticketing_platform",
+      "method": "api_or_permission_or_manual_link",
+      "status": "permission_not_confirmed",
+      "auto_fetch_enabled": false,
+      "auto_publish_enabled": false,
+      "notes": "Public website advertises Nagpur events. Seek an API/partner feed or permission before automated collection."
+    },
+    {
+      "id": "district-ticketing",
+      "name": "District ticketing platform",
+      "url": "https://www.district.in/events/upcoming-events-in-nagpur",
+      "kind": "ticketing_platform",
+      "method": "api_or_written_permission",
+      "status": "permission_not_confirmed",
+      "auto_fetch_enabled": false,
+      "auto_publish_enabled": false,
+      "notes": "Do not scrape or reuse platform listings without explicit authorization."
+    },
+    {
+      "id": "bookmyshow",
+      "name": "BookMyShow",
+      "url": "https://in.bookmyshow.com/",
+      "kind": "ticketing_platform",
+      "method": "api_or_written_permission_or_manual_link",
+      "status": "permission_not_confirmed",
+      "auto_fetch_enabled": false,
+      "auto_publish_enabled": false,
+      "notes": "Use an authorized API/partnership or manual source links; do not deploy an unapproved scraper."
+    },
+    {
+      "id": "scene-app-unresolved",
+      "name": "Scene app — identity to confirm",
+      "url": "",
+      "kind": "unknown",
+      "method": "identify_app_then_review_terms",
+      "status": "needs_identification",
+      "auto_fetch_enabled": false,
+      "auto_publish_enabled": false,
+      "notes": "Do not implement a connector until the exact app or website is identified."
+    },
+    {
+      "id": "social-public-links",
+      "name": "Public social posts and reels",
+      "url": "",
+      "kind": "social_link_intake",
+      "method": "manual_link_intake_or_authorized_api",
+      "status": "manual_intake_available",
+      "auto_fetch_enabled": false,
+      "auto_publish_enabled": false,
+      "notes": "Accept submitted public URLs into a review queue. The intake command does not fetch posts, scrape content, download media or bypass login/anti-bot controls."
+    },
+    {
+      "id": "organizer-calendar-feeds",
+      "name": "Organizer-approved iCalendar feeds",
+      "url": "",
+      "kind": "icalendar",
+      "method": "icalendar_feed",
+      "status": "connector_ready_feed_needed",
+      "auto_fetch_enabled": false,
+      "auto_publish_enabled": false,
+      "notes": "Connector is ready; configure only organizer-approved HTTPS feed URLs."
+    }
+  ]
+}

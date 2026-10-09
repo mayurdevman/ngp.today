@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//NGP Today//Test Fixture//EN
+BEGIN:VEVENT
+UID:pottery-001@example.test
+DTSTAMP:20261009T090000Z
+DTSTART;TZID=Asia/Kolkata:20261015T180000
+DTEND;TZID=Asia/Kolkata:20261015T193000
+SUMMARY:Community pottery workshop
+DESCRIPTION:Try hand building with clay\, suitable for beginners.
+LOCATION:Dharampeth, Nagpur
+URL:https://example.org/events/pottery-001
+END:VEVENT
+BEGIN:VEVENT
+UID:series-001@example.test
+DTSTAMP:20261009T090000Z
+DTSTART;TZID=Asia/Kolkata:20261016T180000
+DTEND;TZID=Asia/Kolkata:20261016T190000
+RRULE:FREQ=WEEKLY;COUNT=4
+SUMMARY:Recurring community meetup
+LOCATION:Civil Lines, Nagpur
+URL:https://example.org/events/meetup
+END:VEVENT
+END:VCALENDAR
