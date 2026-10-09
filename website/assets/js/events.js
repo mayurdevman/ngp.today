@@ -1,37 +1,75 @@
 (() => {
   const grid = document.getElementById('eventGrid');
   if (!grid) return;
+
   const cards = [...grid.querySelectorAll('.event')];
   const search = document.getElementById('eventSearch');
-  const date = document.getElementById('dateFilter');
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const dateOf = card => { const raw = card.dataset.startsAt; if (!raw) return null; const parsed = new Date(raw); return Number.isNaN(parsed.getTime()) ? null : parsed; };
+  const dateFilter = document.getElementById('dateFilter');
+  if (!search || !dateFilter) return;
+
+  const timeZone = 'Asia/Kolkata';
+  const dateKey = value => {
+    if (!value) return null;
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return null;
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone, year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(parsed);
+    const part = type => parts.find(item => item.type === type)?.value;
+    return `${part('year')}-${part('month')}-${part('day')}`;
+  };
+  const todayKey = dateKey(new Date().toISOString());
+  const shiftDate = (key, days) => {
+    const [year, month, day] = key.split('-').map(Number);
+    const value = new Date(Date.UTC(year, month - 1, day + days));
+    return `${value.getUTCFullYear()}-${String(value.getUTCMonth() + 1).padStart(2, '0')}-${String(value.getUTCDate()).padStart(2, '0')}`;
+  };
+  const weekday = key => new Date(`${key}T12:00:00Z`).getUTCDay();
+
+  function weekendRange() {
+    const day = weekday(todayKey);
+    const daysUntilSaturday = (6 - day + 7) % 7;
+    const start = day === 0 ? shiftDate(todayKey, -1) : shiftDate(todayKey, daysUntilSaturday);
+    return [start, shiftDate(start, 1)];
+  }
+
   function applyFilters() {
-    const query = search.value.trim().toLocaleLowerCase();
+    const query = search.value.trim().toLocaleLowerCase('en-IN');
+    const selectedDate = dateFilter.value;
+    const [weekendStart, weekendEnd] = weekendRange();
     let shown = 0;
+
     cards.forEach(card => {
-      const eventDate = dateOf(card);
-      const textMatch = !query || card.textContent.toLocaleLowerCase().includes(query);
+      const eventKey = dateKey(card.dataset.startsAt);
+      const textMatch = !query || card.textContent.toLocaleLowerCase('en-IN').includes(query);
       let dateMatch = true;
-      if (date.value === 'today') dateMatch = !!eventDate && eventDate.toDateString() === today.toDateString();
-      if (date.value === 'upcoming') dateMatch = !!eventDate && eventDate >= today;
-      if (date.value === 'weekend') {
-        const day = today.getDay();
-        const start = new Date(today);
-        start.setDate(today.getDate() + ((6 - day + 7) % 7));
-        const end = new Date(start);
-        end.setDate(start.getDate() + 1);
-        dateMatch = !!eventDate && eventDate >= today && eventDate <= end;
+
+      if (selectedDate === 'today') dateMatch = eventKey === todayKey;
+      if (selectedDate === 'upcoming') dateMatch = !!eventKey && eventKey >= todayKey;
+      if (selectedDate === 'weekend') {
+        dateMatch = !!eventKey && eventKey >= todayKey &&
+          eventKey >= weekendStart && eventKey <= weekendEnd;
       }
+
       const visible = textMatch && dateMatch;
       card.hidden = !visible;
       if (visible) shown++;
     });
+
     let empty = grid.querySelector('.filtered-empty');
     if (!shown && cards.length) {
-      if (!empty) { empty = document.createElement('div'); empty.className = 'empty filtered-empty'; empty.textContent = 'No events match this search.'; grid.appendChild(empty); }
-    } else if (empty) empty.remove();
+      if (!empty) {
+        empty = document.createElement('div');
+        empty.className = 'empty filtered-empty';
+        empty.textContent = 'No events match this search.';
+        grid.appendChild(empty);
+      }
+    } else if (empty) {
+      empty.remove();
+    }
   }
-  [search, date].forEach(element => element.addEventListener('input', applyFilters));
+
+  search.addEventListener('input', applyFilters);
+  dateFilter.addEventListener('change', applyFilters);
   applyFilters();
 })();
