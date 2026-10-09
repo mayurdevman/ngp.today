@@ -1,0 +1,25 @@
+name: NGP Today — event discovery
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -e .
+      - name: Discover RSS candidates
+        env:
+          NGP_RSS_FEEDS: ${{ vars.NGP_RSS_FEEDS }}
+          NGP_RSS_FEED_NAMES: ${{ vars.NGP_RSS_FEED_NAMES }}
+        run: python -m nagpur_today.cli discover-rss --output data/event_candidates.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ngp-today-event-candidates
+          path: data/event_candidates.json
+          if-no-files-found: warn
+          retention-days: 14
