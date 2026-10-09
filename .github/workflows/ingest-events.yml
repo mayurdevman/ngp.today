@@ -31,7 +31,7 @@ jobs:
       - name: Ingest approved calendar feeds
         shell: bash
         run: |
-          if [[ "$NAGPUR_ICS_FEEDS" != *"://"* ]]; then
+          if [[ "$NAGPUR_ICS_FEEDS" != *"https://"* ]]; then
             echo 'No valid HTTPS calendar feed configured; skipping.'
           elif [[ "${NAGPUR_ICS_AUTO_PUBLISH,,}" == 'true' ]]; then
             python -m nagpur_today.cli ingest-ical --db data/events.db --publish-approved-feeds
