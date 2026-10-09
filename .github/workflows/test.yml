@@ -1,0 +1,25 @@
+name: NGP Today — test
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install project and test dependencies
+        run: pip install -e '.[test]'
+      - name: Run tests
+        run: python -m pytest -q
+      - name: Validate source registry JSON
+        run: python -m json.tool sources/source_registry.json > /dev/null
+      - name: Validate event data JSON
+        run: python -m json.tool website/_data/events.json > /dev/null
