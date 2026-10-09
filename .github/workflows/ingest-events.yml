@@ -41,7 +41,7 @@ jobs:
       - name: Export approved events to website
         run: |
           python -m nagpur_today.cli export-jekyll-json --db data/events.db --output data/published_events.json
-          python -c 'import json; from pathlib import Path; e=json.loads(Path("data/published_events.json").read_text()); p=Path("website/_data/events.json"); p.parent.mkdir(parents=True,exist_ok=True); p.write_text(json.dumps(e,indent=2,ensure_ascii=False)+"\\n" if e else p.read_text() if p.exists() else "[]\\n",encoding="utf-8"); print(f"Prepared {len(e)} published events")'
+          python -c 'import json; from pathlib import Path; e=json.loads(Path("data/published_events.json").read_text()); p=Path("website/_data/events.json"); p.parent.mkdir(parents=True,exist_ok=True); old=p.read_text() if p.exists() else "[]"; p.write_text(json.dumps(e,indent=2,ensure_ascii=False)+chr(10) if e else old,encoding="utf-8"); print(f"Prepared {len(e)} published events")'
       - name: Commit updated event data
         run: |
           git config user.name 'github-actions[bot]'
