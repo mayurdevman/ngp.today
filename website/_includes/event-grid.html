@@ -1,12 +1,13 @@
 <div class="eventgrid" id="eventGrid" aria-live="polite">
-  {% assign visible_events = site.data.events | where_exp: "event", "event.starts_at != nil" %}
-  {% assign visible_events = visible_events | sort: "starts_at" %}
+  {% assign visible_events = site.data.events | where_exp: "event", "event.starts_at != nil" | sort: "starts_at" %}
   {% if visible_events.size > 0 %}
     {% for event in visible_events %}
       <article class="event" data-starts-at="{{ event.starts_at | escape }}">
+        {% if event.image_url %}<div class="eventart has-image"><img src="{{ event.image_url | escape }}" alt="{{ event.title | escape }} event cover" loading="lazy" onerror="this.parentElement.removeChild(this)"><span class="category">{{ event.category | default: "Event" | escape }}</span></div>{% else %}<div class="eventart"><span class="category">{{ event.category | default: "Event" | escape }}</span></div>{% endif %}
         <div class="event-date"><span>{{ event.starts_at | date: "%b" | upcase }}</span><strong>{{ event.starts_at | date: "%d" }}</strong></div>
         <div class="eventbody"><h3>{{ event.title | escape }}</h3>
-          <div class="meta"><span>{{ event.venue_name | default: event.neighbourhood | default: "Nagpur" | escape }}</span>{% if event.source_url %}<a href="{{ event.source_url | escape }}" rel="noopener noreferrer" target="_blank">Details ↗</a>{% endif %}</div>
+          <div class="meta"><span>{{ event.venue_name | default: event.neighbourhood | default: "Nagpur" | escape }}</span></div>
+          <div class="meta"><span>{{ event.price_label | default: "See event page" | escape }}</span>{% if event.source_url %}<a href="{{ event.source_url | escape }}" rel="noopener noreferrer" target="_blank">Details ↗</a>{% endif %}</div>
         </div>
       </article>
     {% endfor %}
