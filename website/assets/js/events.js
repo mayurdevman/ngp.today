@@ -72,4 +72,34 @@
   search.addEventListener('input', applyFilters);
   dateFilter.addEventListener('change', applyFilters);
   applyFilters();
+
+  const submitForm = document.getElementById('submitForm');
+  const toggleSubmit = document.getElementById('toggleSubmit');
+  if (submitForm && toggleSubmit) {
+    toggleSubmit.addEventListener('click', () => {
+      const open = submitForm.classList.toggle('open');
+      toggleSubmit.setAttribute('aria-expanded', String(open));
+      toggleSubmit.textContent = open ? 'Close form' : '+ Submit an event';
+    });
+    submitForm.addEventListener('submit', event => {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(submitForm).entries());
+      const subject = encodeURIComponent('NGP Today event submission: ' + data.title);
+      const body = encodeURIComponent(
+        'Please review this event for NGP Today.\n\n' +
+        'Title: ' + data.title + '\nCategory: ' + data.category +
+        '\nDate: ' + data.date + '\nTime: ' + (data.time || 'Not provided') +
+        '\nVenue: ' + data.venue + '\nEvent URL: ' + data.url +
+        '\nCover image URL: ' + (data.image || 'Not provided') +
+        '\nPrice: ' + (data.price || 'Not provided') +
+        '\nDetails: ' + (data.details || 'Not provided') +
+        '\nSubmitter email: ' + (data.email || 'Not provided') +
+        '\n\nPlease verify details before publishing.'
+      );
+      const status = document.getElementById('formStatus');
+      if (status) status.textContent = 'Your email app will open with the event details. Send the email to submit; the event will be reviewed before publishing.';
+      window.location.href = 'mailto:hello@ngp.today?subject=' + subject + '&body=' + body;
+    });
+  }
+
 })();
