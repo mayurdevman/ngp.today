@@ -196,4 +196,14 @@
     "price_label": "See event page",
     "organizer_name": "As listed on AllEvents"
   }
+,
+  {
+    "title": "Vipul Goyal Live in Nagpur",
+    "starts_at": "2026-11-29T18:15:00+05:30",
+    "source_url": "https://allevents.in/nagpur/recently-added",
+    "venue_name": "Chitnavis Center",
+    "category": "Comedy",
+    "price_label": "See event page",
+    "organizer_name": "As listed on AllEvents"
+  }
 ]
