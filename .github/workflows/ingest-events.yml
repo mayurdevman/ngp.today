@@ -1,10 +1,12 @@
-name: NGP Today — scheduled ingestion
+name: NGP Today — scheduled ingestion and deploy
 on:
   schedule:
     - cron: '0 */6 * * *'
   workflow_dispatch:
 permissions:
   contents: write
+  pages: write
+  id-token: write
 concurrency:
   group: ngp-today-ingestion
   cancel-in-progress: false
@@ -68,3 +70,26 @@ jobs:
           path: data/event_candidates.json
           if-no-files-found: warn
           retention-days: 14
+  deploy:
+    needs: ingest
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout latest repository content
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Build Jekyll site
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./website
+          destination: ./_site
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
